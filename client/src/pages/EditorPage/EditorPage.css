@@ -1,38 +1,61 @@
-.title{
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: sans-serif;
+}
+
+.title {
     text-align: center;
-    font-size: 2em;
-    margin-top: 20px;
+    font-size: 1.8em;
     background-color: lightcoral;
-    width: 100vw;
+    width: 100%;
+    font-weight: bold;
+    height: 50px;
+    line-height: 50px;
+}
+
+.latexAera {
+    display: flex;
+    flex-direction: row;
+    width: 90vw;
+    height: calc(100vh - 70px);
+    margin-left: 10vw;
+    background-color: antiquewhite;
+    margin-top: 10px;
+}
+
+.latexCodeArea {
+    position: relative;
+    background-color: lightgray;
+    width: 55%;
+    height: 100%;
+}
+
+.latexPreviewAera {
+    background-color: lightblue;
+    width: 45%;
+    height: 100%;
+    border-left: 2px solid #ccc;
+}
+
+.compileButton {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
     font-weight: bold;
 }
 
-.latexCodeArea{
-    background-color: lightgray;
-    width: 30vw;
-    height: 80vh;
+.compileButton:hover {
+    background-color: #218838;
 }
 
-.latexPreviewAera{
-    background-color: lightblue;
-    width: 30vw;
-    height: 80vh;
-}
-
-.latexAera{
-    margin-top: 2vh;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    width: 70vw;
-    background-color: antiquewhite;
-    margin-left: 15vw;
-}
-
-.latexCodeAeraContent{
-    width: 100%;
-    height: 100%;
-    background-color: white;
-    border: none;
-    font-size: 1em;
+.compileButton:disabled {
+    background-color: #6c757d;
 }
