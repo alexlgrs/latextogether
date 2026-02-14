@@ -1,11 +1,12 @@
-import { Router, Request, Response } from "express";
-import { User } from "../models/User";
+import { Router } from "express";
+import { User } from "../models/User.js";
 import { env } from "node:process";
 
-const jwt = require('jsonwebtoken')
-const crypto = require('crypto')
 
-import {login, register} from "../controllers/AuthController"
+import jwt from "jsonwebtoken"
+import crypto from "crypto"
+
+import {login, register} from "../controllers/AuthController.js"
 
 const router = Router();
 

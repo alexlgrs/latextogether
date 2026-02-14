@@ -1,7 +1,6 @@
-import { Request, Response } from "express";
-import { User } from "../models/User";
-const jwt = require('jsonwebtoken')
-const crypto = require('crypto')
+import { User } from "../models/User.js";
+import jwt from "jsonwebtoken"
+import crypto from "crypto"
 import { env } from "node:process";
 
 export const login = async (req, res) => {
@@ -30,10 +29,12 @@ export const login = async (req, res) => {
 }
 
 export const register = async (req, res) => {
-  const {username, password} = req.body;
+
+    const {username, password} = req.body;
 
     if(!username || !password) return res.status(400).json({message: "champs manquants"})
-
+    if(User.findOne({username: username})) return res.status(409).json({message: "utilisateur déjà existant"})
+         
     else {
         const hashedPassword = crypto.createHash('md5').update(password).digest("hex");
         const newUser = new User({ username: username, password: hashedPassword});

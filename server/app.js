@@ -2,30 +2,28 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
-import userRoutes from "./routes/UserRoutes";
-import authRoutes from "./routes/AuthRoutes"
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+import userRoutes from "./routes/UserRoutes.js";
+import authRoutes from "./routes/AuthRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-
-app.use(
-  express.static(path.join(__dirname, "..", "client", "build"))
-);
+app.use(express.static(path.join(__dirname, "..", "client", "dist")));
 
 app.use("/api/users", userRoutes);
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authRoutes);
 
 app.get("/{*any}", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "..", "client", "build", "index.html")
-  );
+  res.sendFile(path.join(__dirname, "..", "client", "dist", "index.html"));
 });
 
 export default app;
-
-
