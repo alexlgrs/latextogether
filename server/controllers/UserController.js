@@ -1,8 +1,8 @@
 import { User } from "../models/User.js";
 
 export const getUsers = async (req, res) => {
-  const users = await User.find();
-  res.json(users);
+    const users = await User.find();
+    res.json(users);
 };
 
 export const createUser = async (req, res) => {
