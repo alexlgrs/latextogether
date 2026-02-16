@@ -31,9 +31,10 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
 
     const {username, password} = req.body;
+    console.log(`Tentative d'inscription avec username: ${username}, déjà existant ? ${await User.findOne({username: username}) ? "oui" : "non"}`);
 
     if(!username || !password) return res.status(400).json({message: "champs manquants"})
-    if(User.findOne({username: username})) return res.status(409).json({message: "utilisateur déjà existant"})
+    if(await User.findOne({username: username})) return res.status(409).json({message: "utilisateur déjà existant"})
          
     else {
         const hashedPassword = crypto.createHash('md5').update(password).digest("hex");

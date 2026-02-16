@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Home from "./pages/HomePage/HomePage";
 import Editor from "./pages/EditorPage/EditorPage";
 import Auth from "./pages/AuthPage/AuthPage"
+import InviteHandler from "./components/InviteHandlerComponent/InviteHandler";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/auth",
     element: <Auth />,
+  },
+  {
+    path: "/invite/:projectId",
+    element: <InviteHandler />,
   }
 ]);
 

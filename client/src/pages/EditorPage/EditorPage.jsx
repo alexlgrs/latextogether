@@ -17,7 +17,6 @@ const EditorPage = () => {
   const [currentDocumentId, setCurrentDocumentId] = useState(null);
   const [loadingProject, setLoadingProject] = useState(true);
 
-  // Charger le projet et ses documents
   useEffect(() => {
     if (projectId) {
       setLoadingProject(true);
@@ -27,7 +26,6 @@ const EditorPage = () => {
           setProjectName(data.name);
           setDocuments(data.files || []);
           
-          // Charger le premier document si disponible
           if (data.files && data.files.length > 0) {
             const firstDoc = data.files[0];
             setCurrentDocumentId(firstDoc._id);
@@ -41,7 +39,6 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
-  // Changer de document
   const handleSelectDocument = (doc) => {
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
@@ -68,11 +65,9 @@ const EditorPage = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // Mettre à jour la liste des documents
         if (data.documents) {
           setDocuments(data.documents);
         }
-        // Afficher le PDF avec le chemin retourné par le serveur
         if (data.pdfPath) {
           setPdfUrl(`/temp/${data.pdfPath}`);
         }
@@ -116,6 +111,14 @@ const EditorPage = () => {
     }
   };
 
+  const handleInviteButton = () => {
+    // créer une invite et copier le lien dans le presse-papiers
+    const inviteLink = `${window.location.origin}/invite/${projectId}`;
+    navigator.clipboard.writeText(inviteLink)
+      .then(() => alert("lien d'invitation copié"))
+      .catch(err => console.error("erruer de copie du lien d'invitation:", err));
+  }
+
   return (
     <div>
       <div className='title'>LATEXTOGETHER - {projectName}</div>
@@ -131,6 +134,9 @@ const EditorPage = () => {
               className="createDocButton"
             >
               + Nouveau
+            </button>
+            <button onClick={handleInviteButton} className="inviteButton">
+              Inviter
             </button>
             <div className='documentsList'>
               {documents.length === 0 ? (
