@@ -13,6 +13,10 @@ const router = createBrowserRouter([
     element: <Home />,
   },
   {
+    path: "/editor/:projectId",
+    element: <Editor />,
+  },
+  {
     path: "/editor",
     element: <Editor />,
   },

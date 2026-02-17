@@ -1,0 +1,131 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: sans-serif;
+}
+
+.title {
+    text-align: center;
+    font-size: 1.8em;
+    background-color: lightcoral;
+    width: 100%;
+    font-weight: bold;
+    height: 50px;
+    line-height: 50px;
+}
+
+.latexAera {
+    display: flex;
+    flex-direction: row;
+    width: 80vw;
+    height: calc(100vh - 70px);
+    margin-left: 20vw;
+    background-color: antiquewhite;
+    margin-top: 10px;
+}
+
+.latexCodeArea {
+    position: relative;
+    background-color: lightgray;
+    width: 55%;
+    height: 100%;
+}
+
+.latexPreviewAera {
+    background-color: lightblue;
+    width: 45%;
+    height: 100%;
+    border-left: 2px solid #ccc;
+}
+
+.compileButton {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.compileButton:hover {
+    background-color: #218838;
+}
+
+.compileButton:disabled {
+    background-color: #6c757d;
+}
+
+.documentsPanel {
+    position: fixed;
+    left: 0;
+    top: 50px;
+    width: 20vw;
+    height: calc(100vh - 50px);
+    background-color: #f0f0f0;
+    border-right: 2px solid #ccc;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.documentsPanel h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5rem;
+}
+
+.createDocButton {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.createDocButton:hover {
+    background-color: #0056b3;
+}
+
+.documentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.documentItem {
+    padding: 0.75rem;
+    background-color: white;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.documentItem:hover {
+    background-color: #e8f4f8;
+    border-color: #007bff;
+}
+
+.documentItem.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+    font-weight: bold;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.1em;
+    color: #666;
+}
