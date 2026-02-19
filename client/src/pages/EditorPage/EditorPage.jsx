@@ -41,20 +41,7 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
-  useEffect(() => {
-
-    const handleKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 's') handleCompile(); 
-
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [latexCode, currentDocumentId]);
-
+  // Changer de document
   const handleSelectDocument = (doc) => {
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
@@ -130,6 +117,14 @@ const EditorPage = () => {
     }
   };
 
+  const handleInviteButton = () => {
+    // créer une invite et copier le lien dans le presse-papiers
+    const inviteLink = `${window.location.origin}/invite/${projectId}`;
+    navigator.clipboard.writeText(inviteLink)
+      .then(() => alert("lien d'invitation copié"))
+      .catch(err => console.error("erruer de copie du lien d'invitation:", err));
+  }
+
   return (
     <div>
       <Navbar />
@@ -145,6 +140,9 @@ const EditorPage = () => {
               className="createDocButton"
             >
               + Nouveau
+            </button>
+            <button onClick={handleInviteButton} className="inviteButton">
+              Inviter
             </button>
             <div className='documentsList'>
               {documents.length === 0 ? (
