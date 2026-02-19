@@ -33,7 +33,7 @@ export const register = async (req, res) => {
     const {username, password} = req.body;
 
     if(!username || !password) return res.status(400).json({message: "champs manquants"})
-    if(User.findOne({username: username})) return res.status(409).json({message: "utilisateur déjà existant"})
+    if(await User.findOne({username: username})) return res.status(409).json({message: "utilisateur déjà existant"})
          
     else {
         const hashedPassword = crypto.createHash('md5').update(password).digest("hex");
