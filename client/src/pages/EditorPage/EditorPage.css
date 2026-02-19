@@ -19,23 +19,39 @@ body {
 .latexAera {
     display: flex;
     flex-direction: row;
+<<<<<<< HEAD
     width: 80vw;
     height: calc(100vh - 60px);
     margin-left: 20vw;
     background-color: antiquewhite;
     margin-top: 60px;
+=======
+<<<<<<< Updated upstream
+    width: 90vw;
+    height: calc(100vh - 70px);
+    margin-left: 10vw;
+    background-color: antiquewhite;
+    margin-top: 10px;
+=======
+    width: 80vw;
+    height: calc(100vh - 60px);
+    margin-left: 22.5vw;
+    background-color: antiquewhite;
+    margin-top: 65px;
+>>>>>>> Stashed changes
+>>>>>>> feature/editor
 }
 
 .latexCodeArea {
     position: relative;
     background-color: lightgray;
-    width: 55%;
+    width: 50%;
     height: 100%;
 }
 
 .latexPreviewAera {
-    background-color: lightblue;
-    width: 45%;
+    background-color: lightgray;
+    width: 50%;
     height: 100%;
     border-left: 2px solid #ccc;
 }
