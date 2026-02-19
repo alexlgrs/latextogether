@@ -3,14 +3,11 @@ import Editor from '../../components/EditorComponent/Editor';
 import Preview from '../../components/PreviewComponent/Preview';
 import "./EditorPage.css";
 
-<<<<<<< feature/editor
-=======
 import Navbar from '../../components/NavbarComponent/Navbar';
 
 import { io } from "socket.io-client";
 const socket = io("http://localhost:4000");
 
->>>>>>> local
 const EditorPage = () => {
   const [latexCode, setLatexCode] = useState(
     `\\documentclass{article}\n\\begin{document}\n\\section{Introduction}\n Taper le code ici et compiler.\n\\end{document}
@@ -18,8 +15,6 @@ const EditorPage = () => {
   
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-<<<<<<< feature/editor
-=======
   const [projectName, setProjectName] = useState("Nouveau Projet");
   const [documents, setDocuments] = useState([]);
   const [currentDocumentId, setCurrentDocumentId] = useState(null);
@@ -83,7 +78,6 @@ const EditorPage = () => {
     setLatexCode(doc.content || '');
     setPdfUrl(null);
   };
->>>>>>> local
 
   const handleEditorChange = (value) => {
     if (isRemoteUpdate) {
@@ -126,25 +120,6 @@ const EditorPage = () => {
     <div >
       <div className='title'>LATEXTOGETHER</div>
 
-<<<<<<< feature/editor
-      <div className='latexAera'>
-        <div className='latexCodeArea'>
-          <Editor code={latexCode} onChange={(value) => setLatexCode(value)} />
-          
-          <button 
-            onClick={handleCompile} 
-            className="compileButton" 
-            disabled={loading}
-          >
-            {loading ? "CHARGEMENT..." : "COMPILER"}
-          </button>
-        </div>
-
-        <div className='latexPreviewAera'>
-          <Preview pdfUrl={pdfUrl} isLoading={loading} />
-        </div>
-      </div>
-=======
       {loadingProject ? (
         <div className='loading'>Chargement du projet...</div>
       ) : (
@@ -193,7 +168,6 @@ const EditorPage = () => {
           </div>
         </>
       )}
->>>>>>> local
     </div>
   );
 };
