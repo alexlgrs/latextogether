@@ -79,6 +79,7 @@ const EditorPage = () => {
     setPdfUrl(null);
   };
 
+  // changements dans l'editeur
   const handleEditorChange = (value) => {
     if (isRemoteUpdate) {
       setIsRemoteUpdate(false);
