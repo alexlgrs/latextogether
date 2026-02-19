@@ -19,9 +19,11 @@ const InviteHandler = () => {
                     body: JSON.stringify({ userId: user._id }),
                 });
 
-                if (!await result.ok) return navigate("/");
-                
-            } catch (err) navigate("/");
+                await navigate(`/editor/${projectId}`);
+            } catch (err) {
+                console.error("Erreur invite:", err);
+                navigate("/");
+            }
         };
 
         acceptInvite();

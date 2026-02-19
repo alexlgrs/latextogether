@@ -131,6 +131,7 @@ const EditorPage = () => {
     setPdfUrl(null);
   };
 
+  // changements dans l'editeur
   const handleEditorChange = (value) => {
     if (isRemoteUpdateRef.current) {
       isRemoteUpdateRef.current = false;
