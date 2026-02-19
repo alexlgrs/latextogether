@@ -28,14 +28,7 @@ const EditorPage = () => {
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [username, setUsername] = useState("");
 
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> feature/editor
   const socketRef = useRef(null);
-
-
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -58,11 +51,6 @@ const EditorPage = () => {
     // Affichage de la liste des utilisateurs en utilisation du socket dans ce document
     
     socketRef.current.on("users-in-document", (users) => {
-<<<<<<< HEAD
-      
-      console.log("Utilisateurs dans le document:", users);
-      setConnectedUsers(users);
-=======
 
       
       console.log("Utilisateurs dans le document:", users);
@@ -72,7 +60,6 @@ const EditorPage = () => {
       });
 
       setConnectedUsers(uniqueUsers);
->>>>>>> feature/editor
     }); 
 
     return () => {
@@ -83,10 +70,6 @@ const EditorPage = () => {
   }, []);
 
   // récupération du projet et des documents
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> feature/editor
   useEffect(() => {
     if (projectId) {
       setLoadingProject(true);
@@ -288,31 +271,18 @@ const EditorPage = () => {
                 ))
               )}
             </div>
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> feature/editor
 
             <div className='connectedUsersPanel'>
               <h4>Connectés ({connectedUsers.length})</h4>
               <ul className='usersList'>
                 {connectedUsers.map((user, index) => (
                   <li key={index} className='userItem'>
-<<<<<<< HEAD
-                    <span className='userBadge'>●</span>
-=======
                     <span className='userBadge'></span>
->>>>>>> feature/editor
                     <span className='userName'>{user.username}</span>
                   </li>
                 ))}
               </ul>
             </div>
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> feature/editor
           </div>
 
           <div className='latexAera'>

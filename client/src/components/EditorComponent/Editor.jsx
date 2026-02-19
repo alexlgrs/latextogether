@@ -1,12 +1,8 @@
 import Editor from "@monaco-editor/react";
-<<<<<<< HEAD
 import Navbar from "../NavbarComponent/Navbar";
-=======
-<<<<<<< Updated upstream
-=======
+
 import latexData from "../../assets/latex_symbols.json"; // Importation du JSON
->>>>>>> Stashed changes
->>>>>>> feature/editor
+
 
 export default function MyEditor({ code, onChange }) {
     // code gemini pour auto completion
