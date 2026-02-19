@@ -6,6 +6,9 @@ import "./EditorPage.css";
 
 import Navbar from '../../components/NavbarComponent/Navbar';
 
+import { io } from "socket.io-client";
+const socket = io("http://localhost:4000");
+
 const EditorPage = () => {
   const { projectId } = useParams();
   const [latexCode, setLatexCode] = useState(
@@ -41,12 +44,56 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
-  // Changer de document
+  const [isRemoteUpdate, setIsRemoteUpdate] = useState(false);
+
+  useEffect(() => {
+    if (currentDocumentId) {
+      socket.emit("join-document", currentDocumentId);
+
+      socket.on("receive-changes", (newContent) => {
+        setIsRemoteUpdate(true); // pour éviter de boucler nos modifs
+        setLatexCode(newContent);
+      });
+    }
+
+    return () => {
+      socket.off("receive-changes");
+    };
+  }, [currentDocumentId]);
+
+  useEffect(() => {
+
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') handleCompile(); 
+
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [latexCode, currentDocumentId]);
+
   const handleSelectDocument = (doc) => {
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
     setPdfUrl(null);
   };
+
+  const handleEditorChange = (value) => {
+    if (isRemoteUpdate) {
+      setIsRemoteUpdate(false);
+      return;
+    }
+    
+    setLatexCode(value);
+    socket.emit("send-changes", { 
+      documentId: currentDocumentId, 
+      content: value 
+    });
+  };
+
 
   const handleCompile = async () => {
     if (!projectId || !currentDocumentId) {
@@ -141,9 +188,6 @@ const EditorPage = () => {
             >
               + Nouveau
             </button>
-            <button onClick={handleInviteButton} className="inviteButton">
-              Inviter
-            </button>
             <div className='documentsList'>
               {documents.length === 0 ? (
                 <p>Aucun document</p>
@@ -163,7 +207,7 @@ const EditorPage = () => {
 
           <div className='latexAera'>
             <div className='latexCodeArea'>
-              <Editor code={latexCode} onChange={(value) => setLatexCode(value)} />
+              <Editor code={latexCode} onChange={handleEditorChange} />
               
               <button 
                 onClick={handleCompile} 
