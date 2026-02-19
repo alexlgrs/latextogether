@@ -1,27 +1,68 @@
 import { Server } from "socket.io";
+import { Document } from "./models/Document.js";
 
-const io = new Server(4000, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
-  },
-});
+export const initSocket = (server) => {
+    const io = new Server(server, {
+        cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+        },
+    });
 
-io.on("connection", (socket) => {
-  console.log("Connecté au client socket:", socket.id);
+    const pendingChanges = new Map();
+    const documentUsers = new Map();
 
-  socket.on("join-document", (documentId) => {
-    socket.join(documentId);
-  });
+    io.on("connection", (socket) => {
+        console.log("Connecté au client socket:", socket.id);
 
-  socket.on("send-changes", ({ documentId, content }) => {
-    socket.to(documentId).emit("receive-changes", content);
-  });
+        socket.on("join-document", ({ documentId, username }) => {
+            socket.join(documentId);
+            
+            if (!documentUsers.has(documentId)) documentUsers.set(documentId, []);
 
-  socket.on("disconnect", () => {
-    console.log("Utilisateur déconnecté");
-  });
-});
+            documentUsers.get(documentId).push({ socketId: socket.id, username });
+            
+            console.log(`Utilisateur ${username} (${socket.id}) a rejoint : ${documentId}`);
+            
 
+            io.to(documentId).emit("users-in-document", documentUsers.get(documentId));
+        });
 
-export default io;
+        socket.on("send-changes", async ({ documentId, content }) => {
+
+            try {
+                socket.to(documentId).emit("receive-changes", content);
+                
+                if (pendingChanges.has(documentId)) clearTimeout(pendingChanges.get(documentId).timer);
+
+                const timer = setTimeout(async () => {
+                    await Document.findByIdAndUpdate(documentId, { 
+                        content: content,
+                        updatedAt: new Date()
+                    });
+                    pendingChanges.delete(documentId);
+                    console.log(`Document ${documentId} sauvegardé`);
+                }, 500);
+
+                pendingChanges.set(documentId, { timer, content });
+            } catch (error) {
+                console.error("Erreur lors de la synchronisation:", error);
+            }
+        });
+
+        socket.on("disconnect", () => {
+            // retirer l'utilisateur des listes des documents
+            documentUsers.forEach((users, documentId) => {
+                const userIndex = users.findIndex(u => u.socketId === socket.id);
+                if (userIndex !== -1) {
+                users.splice(userIndex, 1);
+                io.to(documentId).emit("users-in-document", users);
+                console.log(`Utilisateur disconnecté du document ${documentId}`);
+                }
+            });
+            console.log("Utilisateur déconnecté");
+        });
+    }); 
+
+    return io;
+};

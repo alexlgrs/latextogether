@@ -2,7 +2,7 @@ const Preview = ({ pdfUrl, isLoading }) => {
   return (
     <div className="preview-container" style={{ height: '90vh', border: '1px solid #ccc' }}>
       {isLoading ? (
-        <div className="loading-overlay">Compilation en cours...</div>
+        <div className="loading-overlay">Compilation en cours</div>
       ) : pdfUrl ? (
         <iframe
           src={pdfUrl}

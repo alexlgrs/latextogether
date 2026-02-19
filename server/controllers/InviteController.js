@@ -3,13 +3,12 @@ import { Project } from "../models/Project.js";
 export const handleInvite = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { userId } = req.body; // Récupéré du corps de la requête (POST)
+        const { userId } = req.body;
 
         if (!userId) {
             return res.status(401).json({ error: "Utilisateur non identifié" });
         }
 
-        // Ajoute l'utilisateur au tableau collaborators s'il n'y est pas déjà
         const updatedProject = await Project.findByIdAndUpdate(
             projectId,
             { $addToSet: { collaborators: userId } },

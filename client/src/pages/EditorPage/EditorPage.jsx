@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Editor from '../../components/EditorComponent/Editor';
 import Preview from '../../components/PreviewComponent/Preview';
@@ -7,10 +7,14 @@ import "./EditorPage.css";
 import Navbar from '../../components/NavbarComponent/Navbar';
 
 import { io } from "socket.io-client";
-const socket = io("http://localhost:4000");
 
 const EditorPage = () => {
+
   const { projectId } = useParams();
+  const debounceTimerRef = useRef(null);
+  const isRemoteUpdateRef = useRef(false);
+  
+  // contenu de base du fichier latex
   const [latexCode, setLatexCode] = useState(
     `\\documentclass{article}\n\\begin{document}\n\\section{Introduction}\n Taper le code ici et compiler.\n\\end{document}
   `);
@@ -21,7 +25,47 @@ const EditorPage = () => {
   const [documents, setDocuments] = useState([]);
   const [currentDocumentId, setCurrentDocumentId] = useState(null);
   const [loadingProject, setLoadingProject] = useState(true);
+  const [connectedUsers, setConnectedUsers] = useState([]);
+  const [username, setUsername] = useState("");
 
+  const socketRef = useRef(null);
+
+
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setUsername(user.username);
+      } catch (error) {
+        console.error("Erreur parsing user data:", error);
+      }
+    }
+
+    socketRef.current = io();
+
+    socketRef.current.on("connect", () => {
+      console.log("Connecté au serveur de sockets ! ID:", socketRef.current.id);
+    });
+
+    
+    // Affichage de la liste des utilisateurs en utilisation du socket dans ce document
+    
+    socketRef.current.on("users-in-document", (users) => {
+      
+      console.log("Utilisateurs dans le document:", users);
+      setConnectedUsers(users);
+    }); 
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+
+        
+  }, []);
+
+  // récupération du projet et des documents
   useEffect(() => {
     if (projectId) {
       setLoadingProject(true);
@@ -44,23 +88,25 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
-  const [isRemoteUpdate, setIsRemoteUpdate] = useState(false);
-
+  // arrivée dans le doucment, on rejoint le socket et on écoute les changements
   useEffect(() => {
     if (currentDocumentId) {
-      socket.emit("join-document", currentDocumentId);
+      socketRef.current.emit("join-document", { documentId: currentDocumentId, username });
 
-      socket.on("receive-changes", (newContent) => {
-        setIsRemoteUpdate(true); // pour éviter de boucler nos modifs
+      const handleReceiveChanges = (newContent) => {
+        isRemoteUpdateRef.current = true;
         setLatexCode(newContent);
-      });
+      };
+
+      socketRef.current.on("receive-changes", handleReceiveChanges);
+
+      return () => {
+        socketRef.current.off("receive-changes", handleReceiveChanges);
+      };
     }
+  }, [currentDocumentId, username]);
 
-    return () => {
-      socket.off("receive-changes");
-    };
-  }, [currentDocumentId]);
-
+  // si ctrl+s, on compile
   useEffect(() => {
 
     const handleKeyDown = (event) => {
@@ -75,23 +121,32 @@ const EditorPage = () => {
     };
   }, [latexCode, currentDocumentId]);
 
+  // changement de document
   const handleSelectDocument = (doc) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
     setPdfUrl(null);
   };
 
   const handleEditorChange = (value) => {
-    if (isRemoteUpdate) {
-      setIsRemoteUpdate(false);
+    if (isRemoteUpdateRef.current) {
+      isRemoteUpdateRef.current = false;
       return;
     }
     
     setLatexCode(value);
-    socket.emit("send-changes", { 
-      documentId: currentDocumentId, 
-      content: value 
-    });
+    
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    
+    debounceTimerRef.current = setTimeout(() => {
+      socketRef.current.emit("send-changes", { 
+        documentId: currentDocumentId, 
+        content: value 
+      });
+    }, 100);
   };
 
 
@@ -210,6 +265,18 @@ const EditorPage = () => {
                   </div>
                 ))
               )}
+            </div>
+
+            <div className='connectedUsersPanel'>
+              <h4>Connectés ({connectedUsers.length})</h4>
+              <ul className='usersList'>
+                {connectedUsers.map((user, index) => (
+                  <li key={index} className='userItem'>
+                    <span className='userBadge'>●</span>
+                    <span className='userName'>{user.username}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 

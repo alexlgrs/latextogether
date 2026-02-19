@@ -22,7 +22,7 @@ function Navbar() {
 
             <div className="nav-right">
                 <div className="user-info">
-                    {user?.username || "Utilisateur"}
+                    {user?.username || "Inconnu"}
                 </div>
                 <button className="btn-logout" onClick={handleLogout}>Déconnexion</button>
             </div>

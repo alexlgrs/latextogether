@@ -10,7 +10,7 @@ export const getProjectsFromId = async (req, res) => {
             .populate("collaborators")
             .populate("files");
         
-        // Trier les projets par date de dernière mise à jour de leurs documents
+        // triage les projets par date de dernière mise a jour
         projects.sort((a, b) => {
             const getLatestUpdate = (project) => {
                 if (!project.files || project.files.length === 0) {

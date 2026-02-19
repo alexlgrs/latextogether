@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // ou fetch
+
 
 const InviteHandler = () => {
     const { projectId } = useParams();
@@ -9,24 +9,19 @@ const InviteHandler = () => {
     useEffect(() => {
         const acceptInvite = async () => {
             try {
-                // On récupère l'user stocké dans le navigateur
                 const user = JSON.parse(localStorage.getItem("user"));
                 
-                if (!user || !user._id) {
-                    // Si pas connecté, on le renvoie vers /auth avec l'id du projet pour plus tard
-                    navigate(`/auth?redirect=/invite/${projectId}`);
-                    return;
-                }
+                if (!user) return navigate(`/auth?redirect=/invite/${projectId}`);
 
-                // On appelle l'API backend
-                await axios.post(`/api/invite/${projectId}`, { userId: user._id });
+                let result = await fetch(`/api/invite/${projectId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: user._id }),
+                });
 
-                // Une fois ajouté, on va vers l'éditeur
-                navigate(`/editor/${projectId}`);
-            } catch (err) {
-                console.error("Erreur invite:", err);
-                navigate("/"); // Retour accueil si erreur
-            }
+                if (!await result.ok) return navigate("/");
+                
+            } catch (err) navigate("/");
         };
 
         acceptInvite();
