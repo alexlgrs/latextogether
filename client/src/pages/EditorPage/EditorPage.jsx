@@ -20,6 +20,53 @@ const EditorPage = () => {
   const [currentDocumentId, setCurrentDocumentId] = useState(null);
   const [loadingProject, setLoadingProject] = useState(true);
 
+<<<<<<< Updated upstream
+=======
+  const socketRef = useRef(null);
+
+
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setUsername(user.username);
+      } catch (error) {
+        console.error("Erreur parsing user data:", error);
+      }
+    }
+
+    socketRef.current = io();
+
+    socketRef.current.on("connect", () => {
+      console.log("Connecté au serveur de sockets ! ID:", socketRef.current.id);
+    });
+
+    
+    // Affichage de la liste des utilisateurs en utilisation du socket dans ce document
+    
+    socketRef.current.on("users-in-document", (users) => {
+
+      
+      console.log("Utilisateurs dans le document:", users);
+      // supprimer les doublons (dans le cas ou un utilisateur ouvrirait le même document dans plusieurs onglets)
+      const uniqueUsers = Array.from(new Set(users.map(u => u.username))). map(username => {
+        return users.find(u => u.username === username);
+      });
+
+      setConnectedUsers(uniqueUsers);
+    }); 
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+
+        
+  }, []);
+
+  // récupération du projet et des documents
+>>>>>>> Stashed changes
   useEffect(() => {
     if (projectId) {
       setLoadingProject(true);
@@ -148,6 +195,21 @@ const EditorPage = () => {
                 ))
               )}
             </div>
+<<<<<<< Updated upstream
+=======
+
+            <div className='connectedUsersPanel'>
+              <h4>Connectés ({connectedUsers.length})</h4>
+              <ul className='usersList'>
+                {connectedUsers.map((user, index) => (
+                  <li key={index} className='userItem'>
+                    <span className='userBadge'></span>
+                    <span className='userName'>{user.username}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+>>>>>>> Stashed changes
           </div>
 
           <div className='latexAera'>
