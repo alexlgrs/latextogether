@@ -188,6 +188,14 @@ const EditorPage = () => {
             >
               + Nouveau
             </button>
+
+            <button 
+              onClick={handleInviteButton}
+              className="createInviteButton"
+            >
+              Invite
+            </button>
+
             <div className='documentsList'>
               {documents.length === 0 ? (
                 <p>Aucun document</p>
