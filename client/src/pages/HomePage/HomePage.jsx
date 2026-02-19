@@ -53,13 +53,17 @@ const HomePage = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
 
-    fetch('/api/projects/create-project', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: "Nouveau Projet", owner: user._id }),
-    }).then(res => res.json()).then(data => {
-        console.log("Projet créé :", data);
-    }).catch(err => console.error("Erreur création projet:", err));
+    var name = prompt("Veuillez entrer le nom du projet :", "Nouveau projet");
+
+    if(name){
+      fetch('/api/projects/create-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, owner: user._id }),
+      }).then(res => res.json()).then(data => {
+          setProjects(prevProjects => [...prevProjects, data]);
+      }).catch(err => console.error("Erreur création projet:", err));
+    }
   }
 
   return (

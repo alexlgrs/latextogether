@@ -4,6 +4,8 @@ import Editor from '../../components/EditorComponent/Editor';
 import Preview from '../../components/PreviewComponent/Preview';
 import "./EditorPage.css";
 
+import Navbar from '../../components/NavbarComponent/Navbar';
+
 const EditorPage = () => {
   const { projectId } = useParams();
   const [latexCode, setLatexCode] = useState(
@@ -17,7 +19,6 @@ const EditorPage = () => {
   const [currentDocumentId, setCurrentDocumentId] = useState(null);
   const [loadingProject, setLoadingProject] = useState(true);
 
-  // Charger le projet et ses documents
   useEffect(() => {
     if (projectId) {
       setLoadingProject(true);
@@ -27,7 +28,6 @@ const EditorPage = () => {
           setProjectName(data.name);
           setDocuments(data.files || []);
           
-          // Charger le premier document si disponible
           if (data.files && data.files.length > 0) {
             const firstDoc = data.files[0];
             setCurrentDocumentId(firstDoc._id);
@@ -41,7 +41,6 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
-  // Changer de document
   const handleSelectDocument = (doc) => {
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
@@ -68,11 +67,9 @@ const EditorPage = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // Mettre à jour la liste des documents
         if (data.documents) {
           setDocuments(data.documents);
         }
-        // Afficher le PDF avec le chemin retourné par le serveur
         if (data.pdfPath) {
           setPdfUrl(`/temp/${data.pdfPath}`);
         }
@@ -94,31 +91,34 @@ const EditorPage = () => {
       return;
     }
 
-    try {
-      const response = await fetch('/api/projects/create-document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: projectId }),
-      });
+    var documentName = prompt("Veuillez entrer le nom du document :", "Nouveau Document");
 
-      if (response.ok) {
-        const newDoc = await response.json();
-        setDocuments([...documents, newDoc]);
-        setCurrentDocumentId(newDoc._id);
-        setLatexCode(newDoc.content || '');
-        alert("Document créé!");
-      } else {
+    if(documentName){
+      try {
+        const response = await fetch('/api/projects/create-document', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId: projectId, name: documentName }),
+        });
+
+        if (response.ok) {
+          const newDoc = await response.json();
+          setDocuments([...documents, newDoc]);
+          setCurrentDocumentId(newDoc._id);
+          setLatexCode(newDoc.content || '');
+        } else {
+          alert("Erreur lors de la création du document");
+        }
+      } catch (err) {
+        console.error(err);
         alert("Erreur lors de la création du document");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Erreur lors de la création du document");
     }
   };
 
   return (
     <div>
-      <div className='title'>LATEXTOGETHER - {projectName}</div>
+      <Navbar />
 
       {loadingProject ? (
         <div className='loading'>Chargement du projet...</div>

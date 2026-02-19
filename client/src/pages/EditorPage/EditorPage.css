@@ -20,10 +20,10 @@ body {
     display: flex;
     flex-direction: row;
     width: 80vw;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 60px);
     margin-left: 20vw;
     background-color: antiquewhite;
-    margin-top: 10px;
+    margin-top: 60px;
 }
 
 .latexCodeArea {
@@ -63,9 +63,9 @@ body {
 .documentsPanel {
     position: fixed;
     left: 0;
-    top: 50px;
+    top: 60px;
     width: 20vw;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 60px);
     background-color: #f0f0f0;
     border-right: 2px solid #ccc;
     padding: 1rem;

@@ -40,7 +40,7 @@ export const createProject = async (req, res) => {
 
 export const createDocument = async (req, res) => {
     try {
-        const { projectId } = req.body;
+        const { projectId, name } = req.body;
 
         if (!projectId) {
             return res.status(400).json({ error: "projectId requis" });
@@ -51,7 +51,7 @@ export const createDocument = async (req, res) => {
             return res.status(404).json({ error: "Projet non trouvé" });
         }
 
-        const document = await Document.create({ name: "New Document" });
+        const document = await Document.create({ name: name });
         project.files.push(document._id);
         await project.save();
         
