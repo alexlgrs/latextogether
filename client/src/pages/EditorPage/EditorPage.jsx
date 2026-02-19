@@ -41,6 +41,20 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
+  useEffect(() => {
+
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') handleCompile(); 
+
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [latexCode, currentDocumentId]);
+
   const handleSelectDocument = (doc) => {
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
@@ -125,7 +139,7 @@ const EditorPage = () => {
       ) : (
         <>
           <div className='documentsPanel'>
-            <h3>Documents</h3>
+            <h3>Projet <strong>{ projectName }</strong></h3>
             <button 
               onClick={handleCreateDocument}
               className="createDocButton"

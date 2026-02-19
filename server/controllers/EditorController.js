@@ -17,7 +17,6 @@ async function compileToPdf(req, res) {
     }
 
     try {
-        // Sauvegarder le document avec le contenu
         const doc = await Document.findByIdAndUpdate(
             documentId,
             { 
@@ -31,7 +30,6 @@ async function compileToPdf(req, res) {
             return res.status(404).json({ error: "Document non trouvé" });
         }
 
-        // Compiler le PDF
         const tempId = `doc_${projectId}_${documentId}`;
         const folderPath = path.join(__dirname, '../temp');
         const latexFile = path.join(folderPath, `${tempId}.tex`);
@@ -51,7 +49,6 @@ async function compileToPdf(req, res) {
         const pdfFile = path.join(folderPath, `${tempId}.pdf`);
 
         if (fs.existsSync(pdfFile)) {
-            // Récupérer tous les documents du projet après compilation
             const project = await Project.findById(projectId).populate('files');
             
             res.json({

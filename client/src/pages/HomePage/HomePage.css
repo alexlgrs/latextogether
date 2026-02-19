@@ -1,93 +1,111 @@
-.HomePage{
+/* Palette : Bleu sombre (#1B4B65), Blanc cassé (#F8F9FA), Accent Coral (#F08080) */
+
+/* Style fait par gemini le temps de faire sur figma */
+.HomePage {
     width: 100vw;
-    height: 100vh;
-    background-color: red;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-top: 80px; /* Espace pour la Navbar fixe */
 }
 
-.authLink{
-    background-color: blue;
-}
-
-.editorLink{
-    background-color: green;
-}
-
-.linkButtons{
+/* Container pour les boutons d'actions en haut */
+.linkButtons {
     display: flex;
-    flex-direction: row;
-    width: 20vw;
-    background-color: yellow;
-    justify-content: space-between;
-    margin-top: 5vh;
-    margin-left: 40vw;
+    justify-content: flex-end;
+    gap: 15px;
+    margin: 20px 5vw;
 }
 
-.linkButton{
-    width: 7.5vw;
-    text-align: center;
+.linkButton {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.editorLink {
+    background-color: #1B4B65;
     color: white;
 }
 
+.authLink {
+    background-color: #dc3545;
+    color: white;
+}
+
+.linkButton:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Section Projets */
 .projectsSection {
-    margin-top: 5vh;
-    margin-left: 5vw;
-    margin-right: 5vw;
+    padding: 20px 5vw;
 }
 
 .projectsSection h2 {
-    color: white;
-    margin-bottom: 2vh;
+    color: #1B4B65;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #1B4B65;
+    display: inline-block;
 }
 
 .projectsList {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
 }
 
 .projectCard {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 2px solid white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    color: white;
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    color: #333;
     text-decoration: none;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    border: 1px solid #e1e4e8;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 120px;
 }
 
 .projectCard:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    border-color: #1B4B65;
 }
 
 .projectCard h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.3em;
+    margin: 0;
+    color: #1B4B65;
+    font-size: 1.2rem;
 }
 
 .projectDate {
-    margin: 0;
-    font-size: 0.9em;
-    opacity: 0.8;
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
 }
 
+/* Bouton Création */
 .createProjectButton {
-    width: auto;
-    padding: 0.75rem 1.5rem;
-    margin-left: 5vw;
-    margin-top: 2vh;
-    background-color: purple;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.logo{
-    width: 100%;
-    text-align: center;
-    font-size: 2em;
-    font-weight: bolder;
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background-color: #f08080; /* Light Coral */
+    color: white;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    box-shadow: 0 6px 20px rgba(240, 128, 128, 0.4);
 }

@@ -5,7 +5,23 @@ import { User } from "../models/User.js";
 export const getProjectsFromId = async (req, res) => {
     const userId = req.query.userId;
     try {
-        const projects = await Project.find({ $or: [{ owner: userId }, { collaborators: userId }] }).populate("owner").populate("collaborators").populate("files");
+        const projects = await Project.find({ $or: [{ owner: userId }, { collaborators: userId }] })
+            .populate("owner")
+            .populate("collaborators")
+            .populate("files");
+        
+        // Trier les projets par date de dernière mise à jour de leurs documents
+        projects.sort((a, b) => {
+            const getLatestUpdate = (project) => {
+                if (!project.files || project.files.length === 0) {
+                    return new Date(project.createdAt);
+                }
+                return new Date(Math.max(...project.files.map(file => new Date(file.updatedAt))));
+            };
+            
+            return getLatestUpdate(b) - getLatestUpdate(a);
+        });
+        
         res.json(projects);
     } catch (error) {
         res.status(500).json({ error: "Erreur récupération projets" });

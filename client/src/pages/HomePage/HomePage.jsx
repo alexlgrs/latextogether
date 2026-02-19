@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import "./HomePage.css"
+import Navbar from '../../components/NavbarComponent/Navbar';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -10,11 +11,12 @@ const HomePage = () => {
 
   // double !! car !null = true alors que !salut = false, donc on re negationne pour avoir le bon
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
-    navigate('/');
+  const getLatestModificationDate = (project) => {
+    if (!project.files || project.files.length === 0) {
+      return new Date(project.createdAt);
+    }
+    const latestDate = new Date(Math.max(...project.files.map(file => new Date(file.updatedAt))));
+    return latestDate;
   };
 
   useEffect(() => {
@@ -36,6 +38,16 @@ const HomePage = () => {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
+          data.forEach(project => {
+            
+            console.log(`Projet: ${project.name}`);
+            if (project.files && project.files.length > 0) {
+              project.files.forEach(file => {
+                console.log(` - Document: ${file.name} et modifié : ${new Date(file.updatedAt).toLocaleString('fr-FR')}`);
+              });
+            }
+
+          });
           setProjects(data);
           console.log("Projets de l'utilisateur :", data);
         } else {
@@ -68,43 +80,39 @@ const HomePage = () => {
 
   return (
     <div className='HomePage'>
-      <div className='logo'>
-        LATEXTOGETHER
-      </div>
-      
-      <div className='linkButtons'>
-        <Link to="/editor" className='editorLink linkButton'>
-          editeur
-        </Link>
-        
-        <button onClick={handleLogout} className='authLink linkButton'> 
-            Déconnexion
-        </button>
-      </div>
-
+      <Navbar projectName="Tableau de bord" />
+    
       <div className='projectsSection'>
-        <h2>Mes Projets</h2>
-        {loading && <p>Chargement des projets...</p>}
-        {!loading && projects.length === 0 && <p>Aucun projet trouvé</p>}
-        <div className='projectsList'>
-          {projects.map((project) => (
-            <Link 
-              key={project._id} 
-              to={`/editor/${project._id}`} 
-              className='projectCard'
-            >
-              <h3>{project.name}</h3>
-              <p className='projectDate'>
-                {new Date(project.createdAt).toLocaleDateString('fr-FR')}
-              </p>
-            </Link>
-          ))}
-        </div>
+        <h2>Mes Projets LaTeX</h2>
+        
+        {loading ? (
+          <div className="loading-state">Chargement de vos documents...</div>
+        ) : projects.length === 0 ? (
+          <div className="empty-state">
+            <p>Vous n'avez pas encore de projet. Commencez par en créer un !</p>
+          </div>
+        ) : (
+          <div className='projectsList'>
+            {projects.map((project) => (
+              <Link 
+                key={project._id} 
+                to={`/editor/${project._id}`} 
+                className='projectCard'
+              >
+                <div>
+                  <h3>{project.name}</h3>
+                </div>
+                <p className='projectDate'>
+                  Modifié le {getLatestModificationDate(project).toLocaleDateString('fr-FR')} à {getLatestModificationDate(project).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
-
 
       <button onClick={handleCreateProject} className='createProjectButton linkButton'>
-        Créer un projet
+        + Nouveau Projet
       </button>
     </div>
   );

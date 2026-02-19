@@ -19,7 +19,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir les fichiers temporaires (PDF compilés)
 app.use("/temp", express.static(path.join(__dirname, "temp")));
 
 app.use(express.static(path.join(__dirname, "..", "client", "dist")));
