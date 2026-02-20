@@ -45,6 +45,8 @@ async function compileToPdf(req, res) {
         } catch (execErr) {
             console.error("Erreur pdflatex:", execErr.message);
         }
+
+        console.log("Folder : " + folderPath + " | et tempid : " + tempId);
         
         const pdfFile = path.join(folderPath, `${tempId}.pdf`);
 

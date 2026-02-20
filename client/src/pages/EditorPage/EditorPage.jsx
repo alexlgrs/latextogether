@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { createPath, useParams } from 'react-router-dom';
 // import Editor from '../../components/EditorComponent/Editor';
 
 import Editor from "@monaco-editor/react"
@@ -34,9 +34,16 @@ const EditorPage = () => {
   const [loadingProject, setLoadingProject] = useState(true);
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [username, setUsername] = useState("");
+  const [roomName, setRoomName] = useState("");
+  const [editor, setEditor] = useState(null);
 
-  const socketRef = useRef(null);
 
+  useEffect(() => {
+      console.log("Project ID:", projectId);
+      setCurrentDocumentId(projectId);
+  }, [projectId]);
+
+  // Récupération du nom d'utilisateur et des utilisateurs connectés au document
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -47,32 +54,35 @@ const EditorPage = () => {
         console.error("Erreur parsing user data:", error);
       }
     }
+  }, []);
 
-    socketRef.current = io();
+  // gestion synchro yjs
+  useEffect(() => {
+    if (!editor || !currentDocumentId) return;
 
-    socketRef.current.on("connect", () => {
-      console.log("Connecté au serveur de sockets ! ID:", socketRef.current.id);
+    const doc = new Y.Doc();
+    const currentRoomName = `document-${currentDocumentId}`;
+    
+    const provider = new WebsocketProvider("/yjs", currentRoomName, doc);
+    const yText = doc.getText('monaco');
+    
+    const binding = new MonacoBinding(
+      yText,
+      editor.getModel(),
+      new Set([editor])
+    );
+
+    provider.on('status', (event) => {
+      setStatus(event.status === 'connected' ? "Connecté" : "Reconnexion");
     });
 
-        
-    socketRef.current.on("users-in-document", (users) => {
-
-      
-      console.log("Utilisateurs dans le document:", users);
-      // supprimer les doublons (dans le cas ou un utilisateur ouvrirait le même document dans plusieurs onglets)
-      const uniqueUsers = Array.from(new Set(users.map(u => u.username))). map(username => {
-        return users.find(u => u.username === username);
-      });
-
-      setConnectedUsers(uniqueUsers);
-    }); 
-
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      binding.destroy();
+      provider.destroy();
+      doc.destroy();
     };
+  }, [currentDocumentId, editor]);
 
-        
-  }, []);
 
   // récupération du projet et des documents
   useEffect(() => {
@@ -97,38 +107,6 @@ const EditorPage = () => {
     }
   }, [projectId]);
 
-  // arrivée dans le doucment, on rejoint le socket et on écoute les changements
-  useEffect(() => {
-    if (currentDocumentId) {
-      socketRef.current.emit("join-document", { documentId: currentDocumentId, username });
-
-      const handleReceiveChanges = (newContent) => {
-        isRemoteUpdateRef.current = true;
-        setLatexCode(newContent);
-      };
-
-      socketRef.current.on("receive-changes", handleReceiveChanges);
-
-      return () => {
-        socketRef.current.off("receive-changes", handleReceiveChanges);
-      };
-    }
-  }, [currentDocumentId, username]);
-
-  // si ctrl+s, on compile
-  useEffect(() => {
-
-    const handleKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 's') handleCompile(); 
-
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [latexCode, currentDocumentId]);
 
   // changement de document
   const handleSelectDocument = (doc) => {
@@ -138,27 +116,13 @@ const EditorPage = () => {
     setCurrentDocumentId(doc._id);
     setLatexCode(doc.content || '');
     setPdfUrl(null);
+    console.log("Document sélectionné:", currentDocumentId);
   };
 
-  // changements dans l'editeur
-  const handleEditorChange = (value) => {
-    if (isRemoteUpdateRef.current) {
-      isRemoteUpdateRef.current = false;
-      return;
-    }
-    
-    setLatexCode(value);
-    
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    
-    debounceTimerRef.current = setTimeout(() => {
-      socketRef.current.emit("send-changes", { 
-        documentId: currentDocumentId, 
-        content: value 
-      });
-    }, 100);
-  };
-
+  useEffect(() => {
+    if (!currentDocumentId) return;
+    console.log("Document sélectionné (useEffect):", currentDocumentId);
+  }, [currentDocumentId]);
 
   const handleCompile = async () => {
     if (!projectId || !currentDocumentId) {
@@ -172,7 +136,7 @@ const EditorPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          content: latexCode,
+          content: editor.getValue(),
           projectId: projectId,
           documentId: currentDocumentId
         }),
@@ -237,40 +201,19 @@ const EditorPage = () => {
       .catch(err => console.error("erruer de copie du lien d'invitation:", err));
   }
 
+  const handleEditorChange = (value) => {
+    setLatexCode(value);
+  }
   
-  const editorRef = useRef(null);
   const [status, setStatus] = useState("Déconnecté");
   
-  const roomName = "monaco-collab-demo-123"; 
   
 
 
-  function handleEditorDidMount(editor, monaco) {
-    editorRef.current = editor;
-
-    // moteur de synchro, mieix que juste socket
-    let doc = new Y.Doc();
-
-    // chargé de distribution des updates
-    let provider = new WebsocketProvider('/yjs', roomName, doc);
-
-    // c'est là qu'on fait le lien entre monaco et yjs
-    let yText = doc.getText('monaco');
-
-    // sert a faire les changements dans les 2 sens
-    let binding = new MonacoBinding(yText, editor.getModel(), new Set([editor]));
-
-    // récupérer l'état de la connexion
-    provider.on('status', (event) => {
-      setStatus(event.status === 'connected' ? "Connecté" : "Reconnexion...");
-    });
-
-    return () => {
-      provider.disconnect();
-      doc.destroy();
-    };
+  function handleEditorDidMount(editorInstance, monaco) {
+    setEditor(editorInstance);
+    console.log("Editor monté:", editorInstance);
   }
-
 
   return (
     <div>
