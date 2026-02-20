@@ -21,6 +21,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/yjs': {
+        target: 'http://localhost:1234',
+        ws: true, // Active le support WebSocket
+        changeOrigin: true,
+      },
     },
     allowedHosts: true
   },

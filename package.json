@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "create-react-app": "^5.1.0"
+    "create-react-app": "^5.1.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
