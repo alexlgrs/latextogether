@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import Editor from '../../components/EditorComponent/Editor';
+// import Editor from '../../components/EditorComponent/Editor';
+
+import Editor from "@monaco-editor/react"
 import Preview from '../../components/PreviewComponent/Preview';
 import "./EditorPage.css";
+
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { MonacoBinding } from 'y-monaco';
+
 
 import Navbar from '../../components/NavbarComponent/Navbar';
 
@@ -47,9 +54,7 @@ const EditorPage = () => {
       console.log("Connecté au serveur de sockets ! ID:", socketRef.current.id);
     });
 
-    
-    // Affichage de la liste des utilisateurs en utilisation du socket dans ce document
-    
+        
     socketRef.current.on("users-in-document", (users) => {
 
       
@@ -232,20 +237,58 @@ const EditorPage = () => {
       .catch(err => console.error("erruer de copie du lien d'invitation:", err));
   }
 
+  
+  const editorRef = useRef(null);
+  const [status, setStatus] = useState("Déconnecté");
+  
+  const roomName = "monaco-collab-demo-123"; 
+  
+
+
+  function handleEditorDidMount(editor, monaco) {
+    editorRef.current = editor;
+
+    // moteur de synchro, mieix que juste socket
+    let doc = new Y.Doc();
+
+    // chargé de distribution des updates
+    let provider = new WebsocketProvider('/yjs', roomName, doc);
+
+    // c'est là qu'on fait le lien entre monaco et yjs
+    let yText = doc.getText('monaco');
+
+    // sert a faire les changements dans les 2 sens
+    let binding = new MonacoBinding(yText, editor.getModel(), new Set([editor]));
+
+    // récupérer l'état de la connexion
+    provider.on('status', (event) => {
+      setStatus(event.status === 'connected' ? "Connecté" : "Reconnexion...");
+    });
+
+    return () => {
+      provider.disconnect();
+      doc.destroy();
+    };
+  }
+
+
   return (
     <div>
       <Navbar />
+
 
       {loadingProject ? (
         <div className='loading'>Chargement du projet...</div>
       ) : (
         <>
+
           <div className='documentsPanel'>
             <h3>Projet <strong>{ projectName }</strong></h3>
             <button 
               onClick={handleCreateDocument}
               className="createDocButton"
-            >
+            >              <p>Statut : {status}</p>
+
               + Nouveau
             </button>
 
@@ -287,7 +330,7 @@ const EditorPage = () => {
 
           <div className='latexAera'>
             <div className='latexCodeArea'>
-              <Editor code={latexCode} onChange={handleEditorChange} />
+              <Editor code={latexCode} onMount={handleEditorDidMount}/>
               
               <button 
                 onClick={handleCompile} 

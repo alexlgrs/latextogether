@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Home from "./pages/HomePage/HomePage";
-import Editor from "./pages/EditorPage/EditorPageYJS";
+import Editor from "./pages/EditorPage/EditorPage";
 import Auth from "./pages/AuthPage/AuthPage"
 import InviteHandler from "./components/InviteHandlerComponent/InviteHandler";
 
