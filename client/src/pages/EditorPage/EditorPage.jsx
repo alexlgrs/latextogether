@@ -38,12 +38,7 @@ const EditorPage = () => {
   const [editor, setEditor] = useState(null);
 
 
-  useEffect(() => {
-      console.log("Project ID:", projectId);
-      setCurrentDocumentId(projectId);
-  }, [projectId]);
-
-  // Récupération du nom d'utilisateur et des utilisateurs connectés au document
+  // Récupération du nom d'utilisateur
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -51,29 +46,44 @@ const EditorPage = () => {
         const user = JSON.parse(userData);
         setUsername(user.username);
       } catch (error) {
-        console.error("Erreur parsing user data:", error);
+        console.error("erreur recupération utilisateur :", error);
       }
     }
   }, []);
 
   // gestion synchro yjs
   useEffect(() => {
-    if (!editor || !currentDocumentId) return;
-
+    if (!editor || !currentDocumentId || currentDocumentId === projectId) return;
     const doc = new Y.Doc();
-    const currentRoomName = `document-${currentDocumentId}`;
-    
-    const provider = new WebsocketProvider("/yjs", currentRoomName, doc);
+    const provider = new WebsocketProvider("ws://localhost:1234", currentDocumentId, doc);
     const yText = doc.getText('monaco');
-    
+
     const binding = new MonacoBinding(
       yText,
       editor.getModel(),
       new Set([editor])
     );
 
-    provider.on('status', (event) => {
-      setStatus(event.status === 'connected' ? "Connecté" : "Reconnexion");
+    // après synchro
+    provider.on('sync', async (isSynced) => {
+      if (isSynced && currentDocumentId) {
+        // document vide = première connexion, on charge le contenu depuis le serveur
+        if (yText.toString().length === 0) {
+          console.log("room vide, on charge content depuis serveur");
+          
+          try {
+            const response = await fetch(`/api/projects/get-document/${currentDocumentId}`);
+            const data = await response.json();
+            
+            if (data.content && yText.toString().length === 0) {
+              // on insere le contenu dans yjs, pour l'afficher dans l'editor et l'envoyer
+              yText.insert(0, data.content);
+            }
+          } catch (err) {
+            console.error("error :", err);
+          }
+        }
+      }
     });
 
     return () => {
@@ -82,7 +92,6 @@ const EditorPage = () => {
       doc.destroy();
     };
   }, [currentDocumentId, editor]);
-
 
   // récupération du projet et des documents
   useEffect(() => {
@@ -93,20 +102,12 @@ const EditorPage = () => {
         .then(data => {
           setProjectName(data.name);
           setDocuments(data.files || []);
-          
-          if (data.files && data.files.length > 0) {
-            const firstDoc = data.files[0];
-            setCurrentDocumentId(firstDoc._id);
-            if (firstDoc.content) {
-              setLatexCode(firstDoc.content);
-            }
-          }
+          if (data.files && data.files.length > 0)  setCurrentDocumentId(data.files[0]._id);
         })
-        .catch(err => console.error("Erreur chargement projet:", err))
+        .catch(err => console.error("erreur projet:", err))
         .finally(() => setLoadingProject(false));
     }
   }, [projectId]);
-
 
   // changement de document
   const handleSelectDocument = (doc) => {
@@ -114,19 +115,28 @@ const EditorPage = () => {
       clearTimeout(debounceTimerRef.current);
     }
     setCurrentDocumentId(doc._id);
-    setLatexCode(doc.content || '');
-    setPdfUrl(null);
-    console.log("Document sélectionné:", currentDocumentId);
+
+    console.log("document selectionné :", currentDocumentId);
   };
 
   useEffect(() => {
-    if (!currentDocumentId) return;
-    console.log("Document sélectionné (useEffect):", currentDocumentId);
+    if (currentDocumentId && currentDocumentId !== projectId) {
+      fetch(`/api/projects/get-document/${currentDocumentId}`)
+        .then(res => {
+          if (!res.ok) throw new Error("erreur recup document");
+          return res.json();
+        })
+        .then(data => {
+          if (data && data.name) setProjectName(data.name);
+        })
+        .catch(err => console.error("erreur chargement document", err));
+    }
   }, [currentDocumentId]);
+
 
   const handleCompile = async () => {
     if (!projectId || !currentDocumentId) {
-      alert("Veuillez sélectionner un projet et un document");
+      alert("Aucun projet ou document sélectionné");
       return;
     }
 
@@ -164,7 +174,7 @@ const EditorPage = () => {
 
   const handleCreateDocument = async () => {
     if (!projectId) {
-      alert("Veuillez sélectionner un projet");
+      alert("Aucun projet sélectionné");
       return;
     }
 
@@ -182,13 +192,12 @@ const EditorPage = () => {
           const newDoc = await response.json();
           setDocuments([...documents, newDoc]);
           setCurrentDocumentId(newDoc._id);
-          setLatexCode(newDoc.content || '');
         } else {
-          alert("Erreur lors de la création du document");
+          alert("erreur création document");
         }
       } catch (err) {
         console.error(err);
-        alert("Erreur lors de la création du document");
+        alert("erreur création document");
       }
     }
   };
@@ -212,7 +221,6 @@ const EditorPage = () => {
 
   function handleEditorDidMount(editorInstance, monaco) {
     setEditor(editorInstance);
-    console.log("Editor monté:", editorInstance);
   }
 
   return (
@@ -294,4 +302,4 @@ const EditorPage = () => {
   );
 };
 
-export default EditorPage;
+export default EditorPage

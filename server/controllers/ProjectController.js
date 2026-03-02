@@ -1,6 +1,11 @@
 import { Project } from "../models/Project.js";
 import { Document } from "../models/Document.js";
 import { User } from "../models/User.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const getProjectsFromId = async (req, res) => {
     const userId = req.query.userId;
@@ -37,10 +42,10 @@ export const getProject = async (req, res) => {
     const { id } = req.params;
     try {
         const project = await Project.findById(id).populate("owner").populate("collaborators").populate("files");
-        if (!project) return res.status(404).json({ error: "Projet non trouvé" });
+        if (!project) return res.status(404).json({ error: "rpojet introuvable" });
         res.json(project);
     } catch (error) {
-        res.status(500).json({ error: "Erreur récupération du projet" });
+        res.status(500).json({ error: "erreur récupération projet" });
     }
 };
 
@@ -48,9 +53,25 @@ export const createProject = async (req, res) => {
     const { name, owner } = req.body;
     try {
         const project = await Project.create({ name, owner });
+        // créer dossier dans le système de fichiers
+        try {
+            let projectFolderPath = path.resolve(__dirname, '../temp/projects', project._id.toString());
+            console.log("Création dossier pour projet:", projectFolderPath);
+            if (!fs.existsSync(projectFolderPath)) {
+                fs.mkdirSync(projectFolderPath, { recursive: true });
+                // création d'un dossier images dans le dossier projet
+                let imagesFolderPath = path.join(projectFolderPath, 'images');
+                fs.mkdirSync(imagesFolderPath);
+
+            }
+        } catch (fsError) {
+            console.error("erreur création dossier projet ", fsError);
+        }
+
+
         res.status(201).json(project);
     } catch (error) {
-        res.status(500).json({ error: "Erreur création du projet" });
+        res.status(500).json({ error: "erreur création projet" });
     }
 };
 
@@ -63,16 +84,57 @@ export const createDocument = async (req, res) => {
         }
 
         const project = await Project.findById(projectId);
-        if (!project) {
-            return res.status(404).json({ error: "Projet non trouvé" });
-        }
+        if (!project) return res.status(404).json({ error: "projet non trouvé" });
+        
 
-        const document = await Document.create({ name: name });
+        const document = await Document.create({ name: name, project: projectId });
         project.files.push(document._id);
         await project.save();
+
+        // créer un fichier [name].tex vide dans le système de fichiers
+        try {
+            // path.resolve donné par gemini pour éviter les problèmes de chemins relatifs
+            let documentFilePath = path.resolve(__dirname, '../temp/projects', projectId, `${document._id}.tex`);
+            console.log("Création fichier pour document:", documentFilePath);
+            fs.writeFileSync(documentFilePath, `\\documentclass{article}\n\\begin{document}\n\\section{Introduction}\n Taper le code ici et compiler.\n\\end{document}`, 'utf-8');
+        } catch (fsError) {
+            console.error("zrreur création fichier document:", fsError);
+        }
         
         res.status(201).json(document);
     } catch (error) {
-        res.status(500).json({ error: "Erreur création du document" });
+        res.status(500).json({ error: "erreur création document" });
+    }
+};
+
+export const getDocument = async (req, res) => {
+    const { documentId } = req.params;
+
+    try {
+        const document = await Document.findById(documentId);
+        
+        if (!document) {
+            return res.status(404).json({ error: "document pas troivé" });
+        }
+
+        const projectId = document.project ? document.project.toString() : null;
+        
+        if (!projectId) {
+            console.error("document sans projet");
+            return res.json({ ...document._doc, content: "" }); 
+        }
+
+        const documentFilePath = path.join(__dirname, '../temp/projects', projectId, `${document._id}.tex`);
+
+        if (fs.existsSync(documentFilePath)) {
+            document.content = fs.readFileSync(documentFilePath, 'utf-8');
+        } else {
+            document.content = ""; 
+        }
+
+        res.json(document);
+    } catch (error) {
+        console.error("erreur getdocuments", error);
+        res.status(500).json({ error: "erreur recup document" });
     }
 };

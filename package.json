@@ -6,14 +6,16 @@
   "scripts": {
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "y-server": "cd client && npm run y-server",
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run y-server\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "create-react-app": "^5.1.0",
-    "ws": "^8.19.0"
+    "ws": "^8.19.0",
+    "y-websocket": "^3.0.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

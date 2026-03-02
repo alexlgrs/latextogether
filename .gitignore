@@ -13,6 +13,8 @@ lerna-debug.log*
 *.fdb_latexmk
 *.synctex.gz
 
+/server/temp
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -104,6 +106,9 @@ dist
 # vuepress v2.x temp and cache directory
 .temp
 .cache
+
+./server/temp
+
 
 # Sveltekit cache directory
 .svelte-kit/
