@@ -15,6 +15,11 @@ import Navbar from '../../components/NavbarComponent/Navbar';
 
 import { io } from "socket.io-client";
 
+import latexData from "../../assets/latex_symbols.json";
+
+
+
+
 const EditorPage = () => {
 
   const { projectId } = useParams();
@@ -209,19 +214,45 @@ const EditorPage = () => {
       .then(() => alert("lien d'invitation copié"))
       .catch(err => console.error("erruer de copie du lien d'invitation:", err));
   }
-
-  const handleEditorChange = (value) => {
-    setLatexCode(value);
-  }
   
   const [status, setStatus] = useState("Déconnecté");
   
-  
+  const handleEditorDidMount = (editor, monaco) => {
+    setEditor(editor);
 
+    if (!monaco.languages.getLanguages().some(lang => lang.id === 'latex')) {
+      monaco.languages.register({ id: 'latex' });
+    }
 
-  function handleEditorDidMount(editorInstance, monaco) {
-    setEditor(editorInstance);
-  }
+    monaco.languages.registerCompletionItemProvider('latex', {
+      triggerCharacters: ['\\'],
+      provideCompletionItems: (model, position) => {
+        const word = model.getWordUntilPosition(position);
+        
+        const range = {
+          startLineNumber: position.lineNumber,
+          endLineNumber: position.lineNumber,
+          startColumn: word.startColumn - 1, 
+          endColumn: word.endColumn,
+        };
+
+        const suggestions = latexData.commands.map(cmd => {
+          return {
+            label: cmd.label,
+            kind: monaco.languages.CompletionItemKind[cmd.kind] || monaco.languages.CompletionItemKind.Snippet,
+            documentation: cmd.desc,
+            insertText: '\\' + cmd.insert,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: range,
+            filterText: cmd.label 
+          };
+        });
+
+        return { suggestions: suggestions };
+      }
+    });
+  };
+
 
   return (
     <div>
@@ -281,7 +312,20 @@ const EditorPage = () => {
 
           <div className='latexAera'>
             <div className='latexCodeArea'>
-              <Editor code={latexCode} onMount={handleEditorDidMount}/>
+              <Editor
+                  language="latex"
+                  theme="vs-light"
+                  value={latexCode}
+                  onMount={handleEditorDidMount}
+                  options={{
+                      suggestOnTriggerCharacters: true,
+                      quickSuggestions: { other: true, strings: true },
+                      wordBasedSuggestions: true,
+                      tabCompletion: "on"
+                  }}
+              />
+
+              {/* <Editor code={latexCode} onMount={handleEditorDidMount}/> */}
               
               <button 
                 onClick={handleCompile} 
