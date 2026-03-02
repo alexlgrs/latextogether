@@ -9,6 +9,9 @@ lerna-debug.log*
 *.pdf
 *.tex
 *.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
