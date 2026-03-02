@@ -10,7 +10,6 @@ function Navbar() {
     }
 
     const user = JSON.parse(localStorage.getItem('user'));
-    console.log(`Utilisateur connecté : ${user?.username || "Aucun utilisateur"}`);
 
     return (
         <nav className="navbar">

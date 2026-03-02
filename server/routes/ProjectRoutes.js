@@ -8,5 +8,6 @@ router.get("/projectsfromid", ProjectController.getProjectsFromId);
 router.post("/create-project", ProjectController.createProject);
 router.get("/:id", ProjectController.getProject);
 router.post("/create-document", ProjectController.createDocument);
+router.get("/get-document/:documentId", ProjectController.getDocument);
 
 export default router;

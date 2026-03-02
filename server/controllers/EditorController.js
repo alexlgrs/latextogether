@@ -12,58 +12,43 @@ const execAsync = promisify(exec);
 async function compileToPdf(req, res) {
     const { content, projectId, documentId } = req.body;
     
-    if (!projectId || !documentId) {
-        return res.status(400).json({ error: "projectId et documentId requis" });
-    }
-
     try {
-        const doc = await Document.findByIdAndUpdate(
-            documentId,
-            { 
-                content: content,
-                updatedAt: new Date()
-            },
-            { new: true }
-        );
+        await Document.findByIdAndUpdate(documentId, { content, updatedAt: new Date() });
 
-        if (!doc) {
-            return res.status(404).json({ error: "Document non trouvé" });
+        let projectFolderPath = path.resolve(__dirname, '../temp/projects', projectId.trim());
+        let latexFile = path.resolve(projectFolderPath, `${documentId.trim()}.tex`);
+
+        if (!fs.existsSync(projectFolderPath)) fs.mkdirSync(projectFolderPath, { recursive: true });
+
+        // verifier que le dossier du projet existe
+        if (!fs.existsSync(projectFolderPath)) {
+            console.error("Le dossier du projet n'existe pas:", projectFolderPath);
+            return res.status(400).json({ error: "Le projet n'existe pas" });
         }
 
-        const tempId = `doc_${projectId}_${documentId}`;
-        const folderPath = path.join(__dirname, '../temp');
-        const latexFile = path.join(folderPath, `${tempId}.tex`);
+        fs.writeFileSync(latexFile, content, 'utf-8');
 
-        if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
-
-        fs.writeFileSync(latexFile, content);
-
-        console.log("Compilation:", folderPath, latexFile);
-        
         try {
-            await execAsync(`pdflatex -interaction=nonstopmode -output-directory=${folderPath} ${latexFile}`);
+            await execAsync(`pdflatex -interaction=nonstopmode -output-directory="${projectFolderPath}" "${latexFile}"`);
         } catch (execErr) {
-            console.error("Erreur pdflatex:", execErr.message);
+            console.error("erreur pdflatex :", execErr.message);
         }
 
-        console.log("Folder : " + folderPath + " | et tempid : " + tempId);
-        
-        const pdfFile = path.join(folderPath, `${tempId}.pdf`);
+        const pdfFile = path.join(projectFolderPath, `${documentId}.pdf`);
 
         if (fs.existsSync(pdfFile)) {
             const project = await Project.findById(projectId).populate('files');
-            
             res.json({
                 success: true,
-                pdfPath: `${tempId}.pdf`,
+                pdfPath: `${projectId}/${documentId}.pdf`, 
                 documents: project.files || []
             });
         } else {
-            res.status(500).json({ error: "compilation ratée - PDF non généré" });
+            res.status(500).json({ error: "erreur, pdf pas générés" });
         }
     } catch (error) {
-        console.error("Erreur:", error);
-        res.status(500).json({ error: "Erreur lors de la compilation", details: error.message });
+        console.error("erreur compilation:", error);
+        res.status(500).json({ error: "erreur de compilation" });
     }
 }
 

@@ -19,5 +19,4 @@ wss.on('connection', (conn, req) => {
 
 server.listen(port, () => {
   console.log(`🚀 Serveur collaboratif lancé sur http://localhost:${port}`);
-  console.log(`Prêt pour le travail à deux !`);
 });

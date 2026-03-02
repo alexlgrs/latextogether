@@ -20,7 +20,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/temp", express.static(path.join(__dirname, "temp")));
+app.use('/temp', express.static(path.join(__dirname, 'temp/projects')));
 
 app.use(express.static(path.join(__dirname, "..", "client", "dist")));
 
