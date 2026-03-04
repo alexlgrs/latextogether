@@ -17,6 +17,7 @@ import { io } from "socket.io-client";
 
 import latexData from "../../assets/latex_symbols.json";
 
+import axios from 'axios';
 
 
 
@@ -41,6 +42,7 @@ const EditorPage = () => {
   const [username, setUsername] = useState("");
   const [roomName, setRoomName] = useState("");
   const [editor, setEditor] = useState(null);
+  const [images, setImages] = useState([]);
 
 
   // Récupération du nom d'utilisateur
@@ -66,14 +68,33 @@ const EditorPage = () => {
     const binding = new MonacoBinding(
       yText,
       editor.getModel(),
-      new Set([editor])
+      new Set([editor]),
+      provider.awareness
     );
+
+    provider.awareness.setLocalStateField('user', {username: username });
+
+    const updateUsers = () => {
+      const states = provider.awareness.getStates();
+      const users = [];
+      
+      states.forEach((state) => {
+        if (state.user) users.push(state.user);
+      });
+      
+      setConnectedUsers(users);
+    };
+
+    provider.awareness.on('change', updateUsers);
+    
+    updateUsers();
+
 
     // après synchro
     provider.on('sync', async (isSynced) => {
       if (isSynced && currentDocumentId) {
         // document vide = première connexion, on charge le contenu depuis le serveur
-        if (yText.toString().length === 0) {
+        if (yText.toString().length == 0) {
           console.log("room vide, on charge content depuis serveur");
           
           try {
@@ -98,7 +119,7 @@ const EditorPage = () => {
     };
   }, [currentDocumentId, editor]);
 
-  // récupération du projet et des documents
+  // récupération du projet et des documents et des images
   useEffect(() => {
     if (projectId) {
       setLoadingProject(true);
@@ -107,6 +128,7 @@ const EditorPage = () => {
         .then(data => {
           setProjectName(data.name);
           setDocuments(data.files || []);
+          setImages(data.images || []);
           if (data.files && data.files.length > 0)  setCurrentDocumentId(data.files[0]._id);
         })
         .catch(err => console.error("erreur projet:", err))
@@ -214,6 +236,36 @@ const EditorPage = () => {
       .then(() => alert("lien d'invitation copié"))
       .catch(err => console.error("erruer de copie du lien d'invitation:", err));
   }
+
+//   const handleImageUpload = async (event) => {
+//     console.log("upload image");
+//     const file = event.target.files[0];
+//     if (!file || !projectId) return;
+
+//     const formData = new FormData();
+//     formData.append('image', file);
+//     formData.append('projectId', projectId);
+
+//     setLoading(true);
+//     try {
+//         const response = await fetch('/api/projects/upload-image', {
+//             method: 'POST',
+//             body: formData,
+//         });
+
+//         if (response.ok) {
+//             const data = await response.json();
+//             console.log("image ajoutée :", data);
+//         } else {
+//             alert("erreur");
+//         }
+//     } catch (error) {
+//         console.error("Erreur upload:", error);
+//     } finally {
+//         setLoading(false);
+//     }
+// };
+
   
   const [status, setStatus] = useState("Déconnecté");
   
@@ -252,6 +304,19 @@ const EditorPage = () => {
       }
     });
   };
+
+  const handleImageUpload = (event) =>{
+    const data = new FormData() ;
+    data.append('projectId', projectId);
+    data.append('image', event.target.files[0]);
+    axios.post("/api/projects/uploadFile", data)
+        .then(res => {
+          console.log(res.statusText)
+          if(res.status === 200){
+            setImages([...images, {name: event.target.files[0].name}]);
+          }
+        })
+  }
 
 
   return (
@@ -294,6 +359,29 @@ const EditorPage = () => {
                     {doc.name}
                   </div>
                 ))
+              )}
+            </div>
+
+            <div className="imagesPanel">
+              <div className='imageUploadSection'>
+                  <input type="file" onChange={handleImageUpload} className='createDocButton'/>
+                  {/* <button className="createDocButton" onClick={() => document.getElementById('imageInput').click()} disabled={loading}>
+                      {loading ? "Envoi..." : "+ Ajouter Image"}
+                  </button> */}
+              </div>
+
+              <h4>Images</h4>
+              {images.length == 0 ? (
+                <p>Aucune image</p>
+              ) : (
+                <ul className='imagesList'>
+                  {images.map((img, index) => (
+                    // liste du nom des images
+                    <li key={index} className='imageItem'>
+                      <div className='imageName'>{img.name}</div>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
 

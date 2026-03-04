@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import multer from "multer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,18 +35,65 @@ export const getProjectsFromId = async (req, res) => {
 };
 
 export const getProjects = async (req, res) => {
-    const projects = await Project.find().populate("owner").populate("collaborators").populate("files");
-    res.json(projects);
+    try {
+        let projects = await Project.find().populate("owner").populate("collaborators").populate("files");
+        // triage les projets par date de dernière mise a jour
+        // triage gemini
+        projects.sort((a, b) => {
+            const getLatestUpdate = (project) => {
+                if (!project.files || project.files.length === 0)  return new Date(project.createdAt);
+                return new Date(Math.max(...project.files.map(file => new Date(file.updatedAt))));
+            };
+
+            return getLatestUpdate(b) - getLatestUpdate(a);
+        });
+        let projectsWithImages = await Promise.all(projects.map(async (project) => {
+            let projectObj = project.toObject();
+            let imagesFolderPath = path.resolve(__dirname, '../temp/projects', project._id.toString(), "images");
+            let images = [];
+            if (fs.existsSync(imagesFolderPath)) images = fs.readdirSync(imagesFolderPath);
+            projectObj.images = images;
+            return projectObj;
+        }));
+
+        res.json(projectsWithImages);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur récupération projets" });
+    }
 }
 
 export const getProject = async (req, res) => {
     const { id } = req.params;
     try {
-        const project = await Project.findById(id).populate("owner").populate("collaborators").populate("files");
-        if (!project) return res.status(404).json({ error: "rpojet introuvable" });
+        const projectDoc = await Project.findById(id)
+            .populate("owner")
+            .populate("collaborators")
+            .populate("files");
+
+        if (!projectDoc) return res.status(404).json({ error: "projet non trouvé" });
+
+        let project = projectDoc.toObject();
+
+        let imagesFolderPath = path.resolve(__dirname, '../temp/projects', id, "images");
+        let images = [];
+
+        if (fs.existsSync(imagesFolderPath)) {
+            images = fs.readdirSync(imagesFolderPath);
+            // on transforme en tableau d'objets avec le nom de l'image et son url
+            images = images.map(imgName => ({
+                name: imgName,
+            }));
+
+        } else {
+            console.log("pas de dossier images");
+        }
+
+        project.images = images;
+
         res.json(project);
     } catch (error) {
-        res.status(500).json({ error: "erreur récupération projet" });
+        console.error(error);
+        res.status(500).json({ error: "erreur recupération project" });
     }
 };
 
@@ -75,13 +123,13 @@ export const createProject = async (req, res) => {
     }
 };
 
+
+
 export const createDocument = async (req, res) => {
     try {
         const { projectId, name } = req.body;
 
-        if (!projectId) {
-            return res.status(400).json({ error: "projectId requis" });
-        }
+        if (!projectId) return res.status(400).json({ error: "projectId requis" });
 
         const project = await Project.findById(projectId);
         if (!project) return res.status(404).json({ error: "projet non trouvé" });
@@ -137,4 +185,30 @@ export const getDocument = async (req, res) => {
         console.error("erreur getdocuments", error);
         res.status(500).json({ error: "erreur recup document" });
     }
+};
+
+const storage = multer.diskStorage({
+    destination: (req, file, callBack) => {
+        const projectId = req.body.projectId;
+        const uploadPath = path.join('temp', 'projects', String(projectId), 'images');
+
+        fs.mkdirSync(uploadPath, { recursive: true });
+
+        callBack(null, uploadPath);
+    },
+    filename: (req, file, callBack) => {
+        callBack(null, file.originalname);
+    }
+});
+
+export const upload = multer({ storage: storage });
+
+export const uploadFile = async (req, res, next) => {
+    const file = req.file;
+    if (!file) {
+        const error = new Error('No File');
+        error.status = 400;
+        return next(error);
+    }
+    res.send(file);
 };
