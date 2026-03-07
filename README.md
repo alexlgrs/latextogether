@@ -9,7 +9,7 @@
 * **Multi-projets :** Créez et gérez plusieurs espaces de travail distincts.
 * **Collaboration en temps réel :** Éditez vos fichiers `.tex` avec vos collègues.
 * **Gestion de fichiers intelligente :** Upload d'images et de ressources organisé dynamiquement par projets.
-* **Compilation Cloud :** Visualisez vos PDF directement.
+* **Compilation Cloud :** Visualisez vos PDF directement, avec possibilité de les télécharger, les imprimer etc.
 
 ---
 
@@ -29,6 +29,7 @@
 * Node.js (v16+)
 * NPM ou Yarn
 * Un cluster MongoDB
+* LaTeX installé sur la machine
 
 ### Étapes
 
@@ -44,8 +45,13 @@
     * Créez un fichier `.env` et ajoutez vos variables :
         ```env
         PORT=3000
-        MONGO_URI=votre_lien_mongodb
+        JWT_KEY = EXAMPLEKEY
         ```
+
+    * Allez dans le dossier client : `cd client`
+    * Installez les dépendances : `npm install`
+
+    * A la racine, installer les dépendances aussi : `npm install`
 
 3.  **Lancement**
     ```bash
